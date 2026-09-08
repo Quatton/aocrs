@@ -1,0 +1,8 @@
+[workspace]
+members = ["crates/lib", "crates/2023"]
+default-members = ["crates/2023"]
+resolver = "3"
+
+[workspace.dependencies]
+aoc = { path = "crates/lib" }
+clap = { version = "4", features = ["derive"] }
