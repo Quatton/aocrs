@@ -25,11 +25,11 @@ fn possible(set: &[u32; 3]) -> bool {
     set[0] <= 12 && set[1] <= 13 && set[2] <= 14
 }
 
-fn game_possible(game: &Vec<[u32; 3]>) -> bool {
+fn game_possible(game: &[[u32; 3]]) -> bool {
     game.iter().all(possible)
 }
 
-fn game_min(game: &Vec<[u32; 3]>) -> [u32; 3] {
+fn game_min(game: &[[u32; 3]]) -> [u32; 3] {
     game.iter().fold([0, 0, 0], |mut acc, cur| {
         for i in 0..3 {
             acc[i] = acc[i].max(cur[i])

@@ -14,26 +14,24 @@ fn main() {
         let mut lsum = 0;
 
         let winning: HashSet<_> = winning
-            .trim()
             .split_whitespace()
             .map(|w| w.parse::<u32>().unwrap())
             .collect();
 
         let have: HashSet<_> = have
-            .trim()
             .split_whitespace()
             .map(|w| w.parse::<u32>().unwrap())
             .collect();
 
         for w in winning {
             if have.contains(&w) {
-                lsum = lsum + 1;
+                lsum += 1;
             }
         }
 
         card_values.push(lsum);
         if lsum > 0 {
-            sum += 1 << lsum - 1
+            sum += 1 << (lsum - 1);
         }
     }
 
@@ -48,8 +46,8 @@ fn main() {
         }
     }
 
-    for i in 0..card_values.len() {
-        part2 += multipliers[i];
+    for mul in multipliers {
+        part2 += mul;
     }
 
     println!("Part 1: {sum}");

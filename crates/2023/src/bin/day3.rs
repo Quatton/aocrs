@@ -45,7 +45,7 @@ fn main() {
     for r in 0..nrows {
         for c in 0..ncols {
             let ch = grid[r][c];
-            let is_num = matches!(ch, '0'..='9');
+            let is_num = ch.is_ascii_digit();
 
             if active.is_empty() && c >= 1 {
                 push_if_sym(&grid, &mut adj, &mut gear_pos, r, c - 1);
@@ -58,22 +58,20 @@ fn main() {
             }
 
             if !is_num || c == ncols - 1 {
-                if !active.is_empty() {
-                    if !adj.is_empty() {
-                        let num = active.parse::<u32>().unwrap();
-                        sum += num;
-                        gear_pos.map(|g| {
-                            let entry = gear_map.get(&g);
+                if !active.is_empty() && !adj.is_empty() {
+                    let num = active.parse::<u32>().unwrap();
+                    sum += num;
+                    if let Some(g) = gear_pos {
+                        let entry = gear_map.get(&g);
 
-                            match entry {
-                                None => {
-                                    gear_map.insert(g, num);
-                                }
-                                Some(&entry) => {
-                                    part2 += entry * num;
-                                }
+                        match entry {
+                            None => {
+                                gear_map.insert(g, num);
                             }
-                        });
+                            Some(&entry) => {
+                                part2 += entry * num;
+                            }
+                        }
                     }
                 }
                 active.clear();
