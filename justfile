@@ -1,6 +1,6 @@
 set shell := ["bash", "-eu", "-o", "pipefail", "-c"]
 
-new-day day:
+new day:
     #!/usr/bin/env bash
     set -euo pipefail
     day="{{day}}"
