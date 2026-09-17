@@ -4,7 +4,7 @@ use std::{
 };
 
 #[repr(u8)]
-#[derive(PartialEq, Eq, Clone, Copy)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
 enum Spring {
     Operational,
     Damaged,
@@ -60,58 +60,74 @@ impl FromStr for Line {
 }
 
 impl Line {
-    fn check_candidate(&self, candidate: &[Spring]) -> bool {
-        let mut consecutives = 0;
+    fn is_valid(&self, springs: &[Spring]) -> bool {
+        let mut consecutive_damaged = 0;
+        let mut verdict = true;
         let mut damaged_iter = self.damaged.iter().peekable();
 
-        for spring in candidate.iter() {
+        for spring in springs.iter().chain(std::iter::once(&Spring::Operational)) {
+            let mut should_break = false;
+            let mut reset = true;
             match spring {
-                Spring::Unknown => return true,
+                Spring::Unknown => {
+                    should_break = true;
+                }
                 Spring::Damaged => {
-                    consecutives += 1;
+                    reset = false;
+                    consecutive_damaged += 1;
+                }
+                _ => {}
+            }
 
-                    match damaged_iter.peek() {
-                        None => return false,
-                        Some(&&dmg) => {
-                            if dmg < consecutives {
-                                return false;
-                            }
-                        }
-                    }
-                }
-                Spring::Operational => {
-                    match damaged_iter.peek() {
-                        None => {}
-                        Some(&&dmg) => {
-                            if dmg != consecutives {
-                                return false;
-                            }
-                            damaged_iter.next();
-                        }
-                    }
-                    consecutives = 0
-                }
+            let damaged_next = damaged_iter.peek();
+
+            let cmp = **damaged_next.unwrap_or(&&0);
+
+            if consecutive_damaged > cmp {
+                verdict = false;
+                should_break = true;
+            }
+
+            if should_break {
+                break;
+            }
+
+            if reset {
+                consecutive_damaged = 0;
+                damaged_iter.next();
             }
         }
 
-        damaged_iter.peek().is_none()
+        verdict
     }
 
-    fn fill(&self, prev: &[Spring]) -> Option<[Vec<Spring>; 2]> {
-        prev.iter().enumerate().find_map(|(idx, s)| match s {
-            Spring::Operational | Spring::Damaged => None,
-            Spring::Unknown => {
-                let mut op = prev.to_vec();
-                let mut dmg = prev.to_vec();
-                op[idx] = Spring::Operational;
-                dmg[idx] = Spring::Damaged;
-                Some([op, dmg])
+    fn count_helper(&self, springs: Vec<Spring>) -> usize {
+        let is_valid = self.is_valid(&springs);
+
+        if !is_valid {
+            return 0;
+        }
+
+        let next_unknown_idx = springs
+            .iter()
+            .enumerate()
+            .find(|&(_, spring)| matches!(spring, Spring::Unknown));
+
+        match next_unknown_idx {
+            None => 1,
+            Some((idx, _)) => {
+                let mut first = springs.clone();
+                let mut second = springs;
+                first[idx] = Spring::Operational;
+                second[idx] = Spring::Damaged;
+
+                self.count_helper(first) + self.count_helper(second)
             }
-        })
+        }
     }
 
     fn count(&self) -> usize {
-        let mut stack = vec![self.springs.clone()];
+        self.count_helper(self.springs.clone())
     }
 }
 
@@ -122,4 +138,8 @@ fn main() {
         .lines()
         .map(|l| Line::from_str(l).unwrap())
         .collect::<Vec<_>>();
+
+    let counts = lines.iter().map(|l| l.count()).collect::<Vec<_>>();
+
+    println!("{counts:?}");
 }
